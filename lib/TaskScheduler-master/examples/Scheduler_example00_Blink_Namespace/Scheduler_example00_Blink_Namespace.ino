@@ -45,7 +45,7 @@
 #define _PL(a)
 #endif
 
-// LED_BUILTIN  13
+#define LED_BUILTIN  13
 #if defined( ARDUINO_ARCH_ESP32 )
 #define LED_BUILTIN  23 // esp32 dev2 kit does not have LED
 #endif

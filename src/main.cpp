@@ -1,65 +1,47 @@
 #include <TaskScheduler.h>
+#include <stdio.h>
+#include <avr/io.h>
 
-#define LED_PIN 13 // Broche de la LED
+#define _TASK_SLEEP_ON_IDLE_RUN  // Enable 1 ms SLEEP_IDLE powerdowns between runs if no callback methods were invoked during the pass
+#define _TASK_STATUS_REQUEST     // Compile with support for StatusRequest functionality - triggering tasks on status change events in addition to time only
 
-// Création du planificateur
-Scheduler runner;
+#define PERIOD1 500
+#define PERIOD2 1000
+#define DURATION 10000
 
-// Prototypes des fonctions
-void toggleLED();       // Fonction pour basculer l'état de la LED
-void blinkFast();       // Fonction pour clignoter rapidement
-void blinkSlow();       // Fonction pour clignoter lentement
-void turnOffLED();      // Fonction pour éteindre la LED
+void toggleLED1();
+void toggleLED2();
 
-// Création des tâches
-Task t1(500, TASK_FOREVER, &toggleLED);  // Clignote toutes les 500 ms
-Task t2(250, 20, &blinkFast);           // Clignote rapidement (toutes les 250 ms, 20 fois)
-Task t3(1000, TASK_FOREVER, &blinkSlow); // Clignote lentement (toutes les 1000 ms)
-Task t4(10000, 1, &turnOffLED);          // Éteint la LED après 10 secondes
+Scheduler ts;
 
-void setup() {
-  pinMode(LED_PIN, OUTPUT); // Configure la broche de la LED comme sortie
-  runner.init();            // Initialise le planificateur
+Task t1(PERIOD1 * TASK_MILLISECOND, DURATION / PERIOD1, &toggleLED1, &ts, true);
+Task t2(PERIOD2 * TASK_MILLISECOND, DURATION / PERIOD2, &toggleLED2, &ts, false);
 
-  // Ajoute les tâches au planificateur
-  runner.addTask(t1);
-  runner.addTask(t2);
-  runner.addTask(t3);
-  runner.addTask(t4);
+void toggleLED1() {
+  PORTB ^= (1<<PORTB5);
+  if ( t1.isLastIteration() ) {
+    t2.restartDelayed(2 * TASK_SECOND);
+    PORTB &= ~(1 << PORTB5);
+  }
+  
+}
 
-  // Active les tâches
-  t1.enable();
-  t2.enable();
-  t3.enable();
-  t4.enable();
+void toggleLED2() {
+  PORTB ^= (1<<PORTB5);
+  if ( t2.isLastIteration() ) {
+    t1.restartDelayed(2 * TASK_SECOND);
+    PORTB &= ~(1 << PORTB5);
+  }
 }
 
 int main(void) {
-  setup();  // Appelle la fonction de configuration
+  Serial.begin(115200);
+  // Configure PB5 as output (LED)
+  DDRB |= (1 << DDB5);
+  pinMode(LED_PIN, OUTPUT);
+  //PORTB &= ~(1 << PORTB5);  // Ensure the LED is off initially
 
-  while (true) {
-    runner.execute(); // Exécute les tâches planifiées
+  while (1) {        
+    ts.execute(); 
   }
-
-  return 0;
-}
-
-// Bascule l'état de la LED
-void toggleLED() {
-  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-}
-
-// Clignote rapidement la LED
-void blinkFast() {
-  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-}
-
-// Clignote lentement la LED
-void blinkSlow() {
-  digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-}
-
-// Éteint la LED
-void turnOffLED() {
-  digitalWrite(LED_PIN, LOW); // Met la LED à l'état éteint
 }

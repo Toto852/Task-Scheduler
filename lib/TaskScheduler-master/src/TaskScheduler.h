@@ -715,7 +715,7 @@ bool Task::enable() {
             iStatus.inonenable = false;     // Protection against potential infinite loop
             iScheduler->iCurrent = current;
         }
-#else
+#else  
         if ( iOnEnable && !iStatus.inonenable ) {
             Task *current = iScheduler->iCurrent;
             iScheduler->iCurrent = this;

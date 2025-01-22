@@ -46,10 +46,10 @@
 #define _PL(a)
 #endif
 
-// LED_BUILTIN  13
-#if defined( ARDUINO_ARCH_ESP32 )
-#define LED_BUILTIN  23 // esp32 dev2 kit does not have LED
-#endif
+#define LED_BUILTIN  13
+//#if defined( ARDUINO_ARCH_ESP32 )
+//#define LED_BUILTIN  23 // esp32 dev2 kit does not have LED
+//#endif
 
 // Scheduler
 Scheduler ts;
@@ -57,11 +57,10 @@ Scheduler ts;
 /*
    Approach 1: LED is driven by the boolean variable; false = OFF, true = ON
 */
-#define PERIOD1 500
+#define PERIOD1 1000
 #define DURATION 10000
 void blink1CB();
 Task tBlink1 ( PERIOD1 * TASK_MILLISECOND, DURATION / PERIOD1, &blink1CB, &ts, true );
-Task task1 ();
 
 /*
    Approac 2: two callback methods: one turns ON, another turns OFF
